@@ -1031,6 +1031,18 @@ function registerHandlers(): void {
     return { cancelled: false, path: workspacePath }
   })
 
+  ipcMain.handle(IPC.REMOVE_WORKSPACE, async (_event, raw: unknown) => {
+    const { path: workspacePath } = z.object({ path: z.string() }).parse(raw)
+    try {
+      sessionIndex?.removeWorkspace(workspacePath)
+      mainWindow?.webContents.send(IPC.SESSION_INDEX_UPDATED)
+      return { ok: true }
+    } catch (err) {
+      emitSessionError(err instanceof Error ? err.message : String(err))
+      return { ok: false }
+    }
+  })
+
   ipcMain.handle(IPC.SESSION_PROMPT, async (_event, raw: unknown) => {
     const active = await ensureActiveSession()
     if (!active) return

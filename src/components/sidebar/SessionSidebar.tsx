@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
+  MoreVertical,
   PencilLine,
   Plus,
   RotateCcw,
@@ -54,11 +55,13 @@ type SessionSidebarProps = {
   onOpenSkills?: () => void
   onOpenExtensions?: () => void
   onOpenWorkspace?: () => void
+  onRemoveWorkspace?: (workspacePath: string) => void
 }
 
 export function SessionSidebar(props: SessionSidebarProps) {
   const [searchVisible, setSearchVisible] = createSignal(Boolean(props.query))
   const [expandedWorkspaces, setExpandedWorkspaces] = createSignal<Set<string>>(new Set())
+  const [openMenuWorkspace, setOpenMenuWorkspace] = createSignal<string | null>(null)
 
   // Per-workspace visible count (pagination within folder)
   const [visibleCounts, setVisibleCounts] = createSignal<Map<string, number>>(new Map())
@@ -289,20 +292,52 @@ export function SessionSidebar(props: SessionSidebarProps) {
               return (
                 <div class="codex-workspace-folder">
                   {/* Folder header */}
-                  <button
-                    type="button"
-                    class="codex-folder-header"
-                    onClick={() => toggleWorkspace(workspace.path)}
-                  >
-                    <span class="codex-folder-chevron">
-                      {isExpanded() ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                    </span>
-                    <span class="codex-folder-icon">
-                      <FolderOpen size={12} />
-                    </span>
-                    <span class="codex-folder-name">{workspace.displayName}</span>
-                    <span class="codex-folder-count">{sessions.length}</span>
-                  </button>
+                  <div class="codex-folder-header">
+                    <button
+                      type="button"
+                      class="codex-folder-header-main"
+                      onClick={() => toggleWorkspace(workspace.path)}
+                    >
+                      <span class="codex-folder-chevron">
+                        {isExpanded() ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                      </span>
+                      <span class="codex-folder-icon">
+                        <FolderOpen size={12} />
+                      </span>
+                      <span class="codex-folder-name">{workspace.displayName}</span>
+                      <span class="codex-folder-count">{sessions.length}</span>
+                    </button>
+                    <div class="codex-folder-menu-wrap">
+                      <button
+                        type="button"
+                        class="codex-folder-menu-trigger"
+                        title="Workspace options"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenMenuWorkspace((prev) =>
+                            prev === workspace.path ? null : workspace.path
+                          )
+                        }}
+                      >
+                        <MoreVertical size={12} />
+                      </button>
+                      <Show when={openMenuWorkspace() === workspace.path}>
+                        <div class="codex-folder-menu">
+                          <button
+                            type="button"
+                            class="codex-folder-menu-item"
+                            onClick={() => {
+                              setOpenMenuWorkspace(null)
+                              props.onRemoveWorkspace?.(workspace.path)
+                            }}
+                          >
+                            <Trash2 size={12} />
+                            <span>Remove workspace</span>
+                          </button>
+                        </div>
+                      </Show>
+                    </div>
+                  </div>
 
                   {/* Sessions list (indented) */}
                   <Show when={isExpanded() && hasSessions}>

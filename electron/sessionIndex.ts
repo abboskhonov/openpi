@@ -147,6 +147,13 @@ export class SessionIndexStore {
     return row?.path ?? null
   }
 
+  removeWorkspace(cwd: string): void {
+    const workspacePath = canonicalizePath(cwd)
+    this.db
+      .prepare('update workspaces set last_opened_at = null where path = @path')
+      .run({ path: workspacePath })
+  }
+
   listWorkspaces(): WorkspaceInfo[] {
     const rows = this.db
       .prepare(`

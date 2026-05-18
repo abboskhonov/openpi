@@ -794,6 +794,9 @@ export default function App() {
                     onOpenSkills={() => openCustomizationsTo('skills')}
                     onOpenExtensions={() => openCustomizationsTo('extensions')}
                     onOpenWorkspace={session.addWorkspace}
+                    onRemoveWorkspace={async (path) => {
+                      await window.openpi.removeWorkspace(path)
+                    }}
                   />
                 </Show>
                 <ResizeHandle direction="horizontal" onResize={resizeSidebar} />

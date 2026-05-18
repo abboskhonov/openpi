@@ -13726,22 +13726,102 @@ body.panel-dragging {
 .codex-folder-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   width: 100%;
-  padding: 5px 6px;
+  padding: 2px;
   border-radius: 5px;
   background: transparent;
   border: none;
   color: var(--muted, #8a8680);
   font-size: 12px;
   font-weight: 500;
-  cursor: pointer;
-  text-align: left;
 }
 
 .codex-folder-header:hover {
   background: var(--surface-raised, #2e2c2a);
   color: var(--primary, #f4f1ec);
+}
+
+.codex-folder-header-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding: 3px 4px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.codex-folder-menu-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.codex-folder-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.codex-folder-header:hover .codex-folder-menu-trigger {
+  opacity: 1;
+}
+
+.codex-folder-menu-trigger:hover {
+  background: var(--surface-card, #242321);
+  color: var(--primary, #f4f1ec);
+}
+
+.codex-folder-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  border-radius: 6px;
+  background: var(--surface-card, #242321);
+  border: 1px solid var(--hairline, #2a2927);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.codex-folder-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--primary, #f4f1ec);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.codex-folder-menu-item:hover {
+  background: var(--surface-raised, #2e2c2a);
 }
 
 .codex-folder-chevron {
