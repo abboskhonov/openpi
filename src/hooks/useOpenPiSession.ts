@@ -266,71 +266,70 @@ export function useOpenPiSession() {
   onMount(() => {
     const unsubs: Array<() => void> = []
 
-    unsubs.push(window.openpi.onSessionEvent(handleEvent))
+    const applySessionReady = (payload: SessionReady) => {
+      latestSessionFile = payload.sessionFile ?? null
 
-    unsubs.push(
-      window.openpi.onSessionReady((payload) => {
-        latestSessionFile = payload.sessionFile ?? null
+      batch(() => {
+        setReady(payload)
+        setSelectedWorkspacePath(payload.cwd)
+        setMessages([])
+        setError(null)
+        setSteeringQueue([])
+        setFollowUpQueue([])
+        setSessionNameState(payload.sessionName ?? null)
+        // Clear extension trackers on new session
+        _taskTracker.clear()
+        _askTracker.clear()
+        _subagentTracker.clear()
+        setTasks([])
+        setAskState(null)
+        setAgents([])
+        if (payload.model) {
+          setCurrentModel(payload.model)
+          currentModelName = payload.model.name
+        }
+        if (payload.thinkingLevel) setThinkingLevelState(payload.thinkingLevel)
+        setHasMoreHistoryBefore(false)
+        setHistoryBeforeEntryId(null)
+        setContextPercent(null)
+        setWorkspaceSummary(null)
+      })
 
-        batch(() => {
-          setReady(payload)
-          setSelectedWorkspacePath(payload.cwd)
-          setMessages([])
-          setError(null)
-          setSteeringQueue([])
-          setFollowUpQueue([])
-          setSessionNameState(payload.sessionName ?? null)
-          // Clear extension trackers on new session
-          _taskTracker.clear()
-          _askTracker.clear()
-          _subagentTracker.clear()
-          setTasks([])
-          setAskState(null)
-          setAgents([])
-          if (payload.model) {
-            setCurrentModel(payload.model)
-            currentModelName = payload.model.name
-          }
-          if (payload.thinkingLevel) setThinkingLevelState(payload.thinkingLevel)
-          setHasMoreHistoryBefore(false)
-          setHistoryBeforeEntryId(null)
-          setContextPercent(null)
+      const summaryCwd = payload.cwd
+      window.openpi
+        .getWorkspaceSummary(summaryCwd)
+        .then((info) => {
+          if (ready()?.cwd !== summaryCwd) return
+          setWorkspaceSummary(info)
+          setGitBranch(info.branch)
+        })
+        .catch(() => {
+          if (ready()?.cwd !== summaryCwd) return
           setWorkspaceSummary(null)
+          setGitBranch(null)
         })
 
-        const summaryCwd = payload.cwd
+      if (payload.sessionFile) {
+        const sessionFile = payload.sessionFile
         window.openpi
-          .getWorkspaceSummary(summaryCwd)
-          .then((info) => {
-            if (ready()?.cwd !== summaryCwd) return
-            setWorkspaceSummary(info)
-            setGitBranch(info.branch)
-          })
-          .catch(() => {
-            if (ready()?.cwd !== summaryCwd) return
-            setWorkspaceSummary(null)
-            setGitBranch(null)
-          })
-
-        if (payload.sessionFile) {
-          const sessionFile = payload.sessionFile
-          window.openpi
-            .getSessionMessages(sessionFile, { limit: HISTORY_PAGE_LIMIT })
-            .then((page) => {
-              if (latestSessionFile !== sessionFile) return
-              batch(() => {
-                setMessages(page.messages)
-                setHasMoreHistoryBefore(page.hasMoreBefore)
-                setHistoryBeforeEntryId(page.nextBeforeEntryId)
-              })
+          .getSessionMessages(sessionFile, { limit: HISTORY_PAGE_LIMIT })
+          .then((page) => {
+            if (latestSessionFile !== sessionFile) return
+            batch(() => {
+              setMessages(page.messages)
+              setHasMoreHistoryBefore(page.hasMoreBefore)
+              setHistoryBeforeEntryId(page.nextBeforeEntryId)
             })
-            .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
-        }
+          })
+          .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+      }
 
-        void loadSessionIndex(payload.cwd)
-        void refreshContextUsage()
-      })
-    )
+      void loadSessionIndex(payload.cwd)
+      void refreshContextUsage()
+    }
+
+    unsubs.push(window.openpi.onSessionEvent(handleEvent))
+    unsubs.push(window.openpi.onSessionReady(applySessionReady))
 
     unsubs.push(
       window.openpi.onSessionError((err) => {
@@ -360,6 +359,19 @@ export function useOpenPiSession() {
 
     // Initial load
     void loadSessionIndex()
+
+    // Sync with main in case we missed the SESSION_READY event during startup
+    // (common in dev mode where renderer mounts after did-finish-load).
+    window.openpi
+      .getCurrentSession()
+      .then((payload) => {
+        if (payload && !ready()) {
+          applySessionReady(payload)
+        }
+      })
+      .catch(() => {
+        /* non-fatal */
+      })
 
     onCleanup(() => {
       for (const u of unsubs) u()

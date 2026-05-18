@@ -953,6 +953,31 @@ function writeModelsJson(agentDir: string, data: ModelsJson): void {
 function registerHandlers(): void {
   ipcMain.handle(IPC.GET_APP_INFO, async (): Promise<AppInfo> => getAppInfo())
 
+  ipcMain.handle(IPC.GET_CURRENT_SESSION, async (): Promise<SessionReady | null> => {
+    if (state) {
+      return normalizeSessionReady({
+        cwd: state.cwd,
+        sessionFile: state.sessionFile,
+        sessionId: state.sessionId,
+        sessionName: null,
+        model: null,
+        thinkingLevel: null,
+      })
+    }
+    if (deferredWorkspace) {
+      const workspacePath = sessionIndex?.upsertWorkspace(deferredWorkspace) ?? deferredWorkspace
+      return normalizeSessionReady({
+        cwd: workspacePath,
+        sessionFile: null,
+        sessionId: null,
+        sessionName: null,
+        model: null,
+        thinkingLevel: null,
+      })
+    }
+    return null
+  })
+
   ipcMain.handle(IPC.SEND_PROMPT, async (_event, raw: unknown): Promise<void> => {
     const r = raw as { text?: string }
     if (r.text) {
