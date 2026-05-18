@@ -2,7 +2,6 @@ import {
   ArrowUpCircle,
   BookOpen,
   FileText,
-  Folder,
   FolderTree,
   GitBranch,
   MessageSquareText,
@@ -12,7 +11,7 @@ import { createSignal, Show } from 'solid-js'
 import type { AppUpdateStatus } from '../lib/ipc'
 import { ChangelogModal } from './ChangelogModal'
 
-export type LeftDrawerMode = 'threads' | 'workspace' | 'stories'
+export type LeftDrawerMode = 'threads' | 'stories'
 
 const HOMEBREW_UPGRADE_COMMAND = 'brew update && brew upgrade --cask openpi'
 
@@ -20,7 +19,6 @@ type BottomBarProps = {
   leftDrawerOpen: boolean
   leftDrawerMode: LeftDrawerMode
   onToggleThreads: () => void
-  onToggleWorkspace: () => void
   onToggleStories: () => void
   gitPanelOpen: boolean
   onToggleGitPanel: () => void
@@ -80,17 +78,8 @@ export function BottomBar(props: BottomBarProps) {
   return (
     <>
       <footer class="bottom-bar no-drag">
-        {/* Left: workspace + thread + changelog toggles */}
+        {/* Left: thread + story + changelog toggles */}
         <div class="bottom-bar-left">
-          <button
-            type="button"
-            class={`bottom-bar-btn${props.leftDrawerOpen && props.leftDrawerMode === 'workspace' ? ' is-active' : ''}`}
-            onClick={props.onToggleWorkspace}
-            title="Show workspaces"
-            aria-pressed={props.leftDrawerOpen && props.leftDrawerMode === 'workspace'}
-          >
-            <Folder size={13} />
-          </button>
           <button
             type="button"
             class={`bottom-bar-btn${props.leftDrawerOpen && props.leftDrawerMode === 'stories' ? ' is-active' : ''}`}

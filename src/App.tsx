@@ -14,7 +14,10 @@ import { BottomBar, type LeftDrawerMode } from './components/BottomBar'
 import { CommandPalette, type PaletteCommand } from './components/CommandPalette'
 import { Composer } from './components/Composer'
 import { ConversationPane } from './components/conversation/ConversationPane'
-import { CustomizationsModal } from './components/customizations/CustomizationsModal'
+import {
+  type ActiveTab,
+  CustomizationsModal,
+} from './components/customizations/CustomizationsModal'
 import { FilePreviewPane } from './components/FilePreviewPane'
 import { FileTabBar } from './components/FileTabBar'
 import { DiffViewer } from './components/git/DiffViewer'
@@ -29,7 +32,6 @@ import { SubagentWidget } from './components/SubagentWidget'
 import { ArchiveConfirmModal } from './components/sidebar/ArchiveConfirmModal'
 import { SessionSidebar } from './components/sidebar/SessionSidebar'
 import { StoryBrowser } from './components/sidebar/StoryBrowser'
-import { WorkspacePane } from './components/sidebar/WorkspacePane'
 import { TaskWidget } from './components/TaskWidget'
 import { TopBar } from './components/TopBar'
 import { TerminalPanel } from './components/terminal/TerminalPanel'
@@ -78,6 +80,8 @@ export default function App() {
   const session = useOpenPiSession()
 
   const [customizationsOpen, setCustomizationsOpen] = createSignal(false)
+  const [customizationsInitialTab, setCustomizationsInitialTab] =
+    createSignal<ActiveTab>('extensions')
   const [terminalOpen, setTerminalOpen] = createSignal(false)
   const [newTerminalRequest, setNewTerminalRequest] = createSignal(0)
   const [sidebarOpen, setSidebarOpen] = createSignal(true)
@@ -441,6 +445,11 @@ export default function App() {
     }
   }
 
+  const openCustomizationsTo = (tab: ActiveTab) => {
+    setCustomizationsInitialTab(tab)
+    setCustomizationsOpen(true)
+  }
+
   const handleUnarchiveSession = async (archivedPath: string) => {
     await window.openpi.unarchiveSessions([archivedPath])
     void loadArchivedSessions()
@@ -741,22 +750,8 @@ export default function App() {
                 </div>
               </Show>
 
-              {/* Left drawer — fixed left, switches between Threads, Workspace, and Stories */}
+              {/* Left drawer — fixed left, switches between Threads and Stories */}
               <Show when={sidebarOpen()}>
-                <Show when={leftDrawerMode() === 'workspace'}>
-                  <WorkspacePane
-                    style={{ width: `${sidebarWidth()}px` }}
-                    workspaces={session.workspaces}
-                    selectedPath={session.selectedWorkspacePath}
-                    activePath={cwd()}
-                    onSelectWorkspace={(workspacePath) => {
-                      void session.selectWorkspace(workspacePath)
-                      setLeftDrawerMode('threads')
-                    }}
-                    onOpenWorkspace={session.openWorkspace}
-                    onNewSessionIn={handleNewSessionIn}
-                  />
-                </Show>
                 <Show when={leftDrawerMode() === 'stories'}>
                   <StoryBrowser cwd={cwd()} onOpenFile={(relPath) => openFile(relPath)} />
                 </Show>
@@ -796,6 +791,8 @@ export default function App() {
                       void handleDeleteArchivedSession(p)
                     }}
                     onOpenSession={session.openExistingSession}
+                    onOpenSkills={() => openCustomizationsTo('skills')}
+                    onOpenExtensions={() => openCustomizationsTo('extensions')}
                   />
                 </Show>
                 <ResizeHandle direction="horizontal" onResize={resizeSidebar} />
@@ -1038,7 +1035,6 @@ export default function App() {
               leftDrawerOpen={sidebarOpen()}
               leftDrawerMode={leftDrawerMode()}
               onToggleThreads={() => toggleLeftDrawerMode('threads')}
-              onToggleWorkspace={() => toggleLeftDrawerMode('workspace')}
               onToggleStories={onToggleStories}
               gitPanelOpen={gitPanelOpen()}
               onToggleGitPanel={() => setGitPanelOpen((prev) => !prev)}
@@ -1100,6 +1096,7 @@ export default function App() {
               onClose={() => setCustomizationsOpen(false)}
               onError={session.setError}
               cwd={cwd()}
+              initialTab={customizationsInitialTab()}
             />
 
             <Show when={connectProviderOpen()}>

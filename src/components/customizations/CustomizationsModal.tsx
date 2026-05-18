@@ -37,9 +37,11 @@ type CustomizationsModalProps = {
   onClose: () => void
   onError: (message: string) => void
   cwd: string | null
+  /** Tab to focus when the modal opens. Defaults to 'extensions'. */
+  initialTab?: ActiveTab
 }
 
-type ActiveTab = CustomizationType | 'settings' | 'general' | 'keybindings'
+export type ActiveTab = CustomizationType | 'settings' | 'general' | 'keybindings'
 
 type NavItem = {
   type: ActiveTab
@@ -90,7 +92,7 @@ const VISUALLY_HIDDEN_STYLE = {
 
 export function CustomizationsModal(props: CustomizationsModalProps) {
   const [inventory, setInventory] = createSignal<CustomizationsInventory | null>(null)
-  const [activeType, setActiveType] = createSignal<ActiveTab>('extensions')
+  const [activeType, setActiveType] = createSignal<ActiveTab>(props.initialTab ?? 'extensions')
   const [loading, setLoading] = createSignal(false)
 
   const loadInventory = async () => {
@@ -106,6 +108,7 @@ export function CustomizationsModal(props: CustomizationsModalProps) {
 
   createEffect(() => {
     if (!props.open) return
+    setActiveType(props.initialTab ?? 'extensions')
     const timer = window.setTimeout(() => {
       void loadInventory()
     }, 0)

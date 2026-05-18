@@ -6,7 +6,7 @@
   "description": "OpenPi desktop workbench for the Pi coding agent.",
   "main": "out/main/index.js",
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "electron-vite dev -- --ozone-platform=x11",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "package": "npm run build && electron-builder --config electron-builder.json",
@@ -80,6 +80,17 @@
     "vite": "^6.3.5",
     "vite-plugin-solid": "^2.11.12",
     "vitest": "^3.1.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "better-sqlite3",
+      "esbuild",
+      "koffi",
+      "protobufjs",
+      "@google/genai",
+      "electron-winstaller"
+    ]
   },
   "author": "OpenPi contributors",
   "license": "MIT"

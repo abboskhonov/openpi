@@ -1,14 +1,25 @@
 import fuzzysort from 'fuzzysort'
-import { Archive, Check, Plus, RotateCcw, Search, Trash2 } from 'lucide-solid'
+import {
+  Archive,
+  Blocks,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen,
+  PencilLine,
+  RotateCcw,
+  Search,
+  Trash2,
+  Wrench,
+} from 'lucide-solid'
 import { createMemo, createSignal, For, Show } from 'solid-js'
 import type { ArchivedSessionItem, SessionListItem, WorkspaceInfo } from '../../lib/ipc'
-import { formatRelativeTime, groupSessions } from '../../lib/sessionView'
+import { formatRelativeTime } from '../../lib/sessionView'
 import type { GroupMode, SortMode } from '../../types/session'
 import { SessionFilterMenu } from './SessionFilterMenu'
 import { SessionRow } from './SessionRow'
 
-const PAGE_SIZE_INITIAL = 10
-const PAGE_SIZE_MORE = 5
+const PAGE_SIZE_INITIAL = 12
+const PAGE_SIZE_MORE = 6
 
 type SessionSidebarProps = {
   style?: string | Record<string, string>
@@ -39,15 +50,52 @@ type SessionSidebarProps = {
   onUnarchiveSession: (archivedPath: string) => void
   onDeleteArchivedSession: (archivedPath: string) => void
   onOpenSession: (session: SessionListItem) => void
+  onOpenSkills?: () => void
+  onOpenExtensions?: () => void
 }
 
 export function SessionSidebar(props: SessionSidebarProps) {
   const [searchVisible, setSearchVisible] = createSignal(Boolean(props.query))
+  const [expandedWorkspaces, setExpandedWorkspaces] = createSignal<Set<string>>(new Set())
 
-  // ─ Update state ───────────────────────────────────────────────────
-  // Per-group visible count — only applied when not searching.
-  // Map key is the group key string.
+  // Per-workspace visible count (pagination within folder)
   const [visibleCounts, setVisibleCounts] = createSignal<Map<string, number>>(new Map())
+
+  // Auto-expand the active workspace on first load
+  createMemo(() => {
+    const activePath = props.activePath
+    if (!activePath) return
+    const activeSession = props.sessions.find((s) => s.path === activePath)
+    if (activeSession) {
+      setExpandedWorkspaces((prev) => {
+        if (prev.has(activeSession.workspacePath)) return prev
+        const next = new Set(prev)
+        next.add(activeSession.workspacePath)
+        return next
+      })
+    }
+  })
+
+  const toggleWorkspace = (path: string) => {
+    setExpandedWorkspaces((prev) => {
+      const next = new Set(prev)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      return next
+    })
+  }
+
+  const expandAll = () => {
+    const allPaths = new Set<string>(props.workspaces.map((w) => w.path))
+    for (const s of props.sessions) {
+      allPaths.add(s.workspacePath)
+    }
+    setExpandedWorkspaces(allPaths)
+  }
+
+  const collapseAll = () => {
+    setExpandedWorkspaces(new Set<string>())
+  }
 
   const getVisible = (key: string) => visibleCounts().get(key) ?? PAGE_SIZE_INITIAL
   const loadMore = (key: string, total: number) => {
@@ -58,214 +106,288 @@ export function SessionSidebar(props: SessionSidebarProps) {
     })
   }
 
-  const pinnedItems = createMemo(() =>
-    props.sessions.filter((session) => props.pinnedSessions.has(session.path))
-  )
+  // Build complete workspace list: from workspaces prop + any from sessions
+  const allWorkspaces = createMemo(() => {
+    const map = new Map<string, WorkspaceInfo>()
+    for (const w of props.workspaces) {
+      map.set(w.path, w)
+    }
+    for (const s of props.sessions) {
+      if (!map.has(s.workspacePath)) {
+        map.set(s.workspacePath, {
+          path: s.workspacePath,
+          displayName: s.workspaceName,
+          lastOpenedAt: null,
+          sessionCount: 0,
+        })
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      const aTime = a.lastOpenedAt ? new Date(a.lastOpenedAt).getTime() : 0
+      const bTime = b.lastOpenedAt ? new Date(b.lastOpenedAt).getTime() : 0
+      return bTime - aTime || a.displayName.localeCompare(b.displayName)
+    })
+  })
 
-  const filtered = createMemo(() => {
-    const q = props.query
-    const sess = props.sessions.filter((session) => !props.pinnedSessions.has(session.path))
-    if (!q.trim()) return sess
+  // Group sessions by workspace
+  const workspaceSessions = createMemo(() => {
+    const map = new Map<string, SessionListItem[]>()
+    for (const session of props.sessions) {
+      const list = map.get(session.workspacePath) ?? []
+      list.push(session)
+      map.set(session.workspacePath, list)
+    }
+    // Sort within each workspace by updatedAt desc
+    for (const [, list] of map) {
+      list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    }
+    return map
+  })
+
+  // Search: fuzzy match across sessions
+  const searchResults = createMemo(() => {
+    const q = props.query.trim()
+    if (!q) return null
     return fuzzysort
-      .go(q, sess, { keys: ['title', 'cwd'], threshold: -10000 })
+      .go(q, props.sessions, { keys: ['title', 'workspaceName'], threshold: -10000 })
       .map((result) => result.obj)
   })
 
-  const grouped = createMemo(() => groupSessions(filtered(), props.groupBy))
-
   return (
-    <aside class="session-sidebar" style={props.style}>
-      <div class="sidebar-header">
-        <div class="sidebar-title-row">
-          <div class="eyebrow">Threads</div>
-          <div class="sidebar-actions">
-            <button
-              type="button"
-              class="icon-button"
-              onClick={() => setSearchVisible((value) => !value)}
-              aria-label="Search threads"
-            >
-              <Search size={15} />
-            </button>
-            <SessionFilterMenu
-              sortBy={props.sortBy}
-              groupBy={props.groupBy}
-              showRecent={props.showRecent}
-              onSort={props.onSort}
-              onGroup={props.onGroup}
-              onShowRecent={props.onShowRecent}
-              onCollapseAll={props.onCollapseAll}
-            />
-            <button
-              type="button"
-              class={`icon-button${props.showArchived ? ' is-active' : ''}`}
-              onClick={props.onToggleArchived}
-              title={`Archived threads${props.archivedSessions.length > 0 ? ` (${props.archivedSessions.length})` : ''}`}
-              aria-label="Archived threads"
-            >
-              <Archive size={15} />
-            </button>
-            <button
-              type="button"
-              class="icon-button no-drag"
-              onClick={props.onNewSession}
-              title="New thread (⌘N)"
-              aria-label="New thread"
-            >
-              <Plus size={15} />
-            </button>
-          </div>
-        </div>
-
-        <Show when={searchVisible()}>
-          <label class="search-field">
-            <Search size={14} />
-            <input
-              value={props.query}
-              onInput={(event) => props.onQuery(event.currentTarget.value)}
-              placeholder="Search threads"
-            />
-          </label>
-        </Show>
+    <aside class="session-sidebar codex-sidebar" style={props.style}>
+      {/* Vertical action list */}
+      <div class="codex-sidebar-top">
+        <button
+          type="button"
+          class="codex-action-row is-primary no-drag"
+          onClick={props.onNewSession}
+          title="New chat"
+        >
+          <PencilLine size={15} />
+          <span>New chat</span>
+        </button>
+        <button
+          type="button"
+          class="codex-action-row no-drag"
+          onClick={() => props.onOpenSkills?.()}
+          title="Skills"
+        >
+          <Blocks size={15} />
+          <span>Skills</span>
+        </button>
+        <button
+          type="button"
+          class="codex-action-row no-drag"
+          onClick={() => props.onOpenExtensions?.()}
+          title="Extensions"
+        >
+          <Wrench size={15} />
+          <span>Extensions</span>
+        </button>
       </div>
 
-      <div class="session-list">
-        <Show when={props.showArchived}>
-          <section class="archived-section">
-            <div class="archived-section-head">
-              <span>Archived</span>
-              <span class="archived-section-count">{props.archivedSessions.length}</span>
+      {/* Threads section header */}
+      <div class="codex-section-header">
+        <span class="codex-section-label">Threads</span>
+        <div class="codex-section-actions">
+          <button
+            type="button"
+            class="codex-section-action-btn"
+            title="Search threads"
+            onClick={() => setSearchVisible((v) => !v)}
+          >
+            <Search size={12} />
+          </button>
+          <button
+            type="button"
+            class="codex-section-action-btn"
+            title="Expand all workspaces"
+            onClick={expandAll}
+          >
+            <ChevronDown size={12} />
+          </button>
+          <button
+            type="button"
+            class="codex-section-action-btn"
+            title="Collapse all workspaces"
+            onClick={collapseAll}
+          >
+            <ChevronRight size={12} />
+          </button>
+          <SessionFilterMenu
+            sortBy={props.sortBy}
+            groupBy={props.groupBy}
+            showRecent={props.showRecent}
+            onSort={props.onSort}
+            onGroup={props.onGroup}
+            onShowRecent={props.onShowRecent}
+            onCollapseAll={props.onCollapseAll}
+          />
+        </div>
+      </div>
+
+      {/* Search field */}
+      <Show when={searchVisible()}>
+        <div class="codex-search-field">
+          <Search size={12} />
+          <input
+            value={props.query}
+            onInput={(event) => props.onQuery(event.currentTarget.value)}
+            placeholder="Search threads"
+          />
+        </div>
+      </Show>
+
+      {/* Scrollable content */}
+      <div class="codex-sidebar-scroll">
+        {/* Search results mode */}
+        <Show when={searchResults()}>
+          {(results) => (
+            <>
+              <Show when={results().length === 0}>
+                <div class="codex-empty">No threads match your search.</div>
+              </Show>
+              <For each={results()}>
+                {(session) => (
+                  <SessionRow
+                    session={session}
+                    active={props.activePath === session.path}
+                    isPinned={props.pinnedSessions.has(session.path)}
+                    onOpen={() => props.onOpenSession(session)}
+                    onPin={() => props.onPinSession(session.path)}
+                    onArchive={() => props.onArchiveSession(session.path)}
+                  />
+                )}
+              </For>
+            </>
+          )}
+        </Show>
+
+        {/* Normal folder view */}
+        <Show when={!searchResults()}>
+          <For each={allWorkspaces()}>
+            {(workspace) => {
+              const sessions = workspaceSessions().get(workspace.path) ?? []
+              const isExpanded = () => expandedWorkspaces().has(workspace.path)
+              const hasSessions = sessions.length > 0
+              const visibleCount = () => getVisible(workspace.path)
+              const visibleSessions = () => sessions.slice(0, visibleCount())
+              const hasMore = () => sessions.length > visibleCount()
+              const remaining = () => sessions.length - visibleCount()
+
+              return (
+                <Show when={hasSessions}>
+                  <div class="codex-workspace-folder">
+                    {/* Folder header */}
+                    <button
+                      type="button"
+                      class="codex-folder-header"
+                      onClick={() => toggleWorkspace(workspace.path)}
+                    >
+                      <span class="codex-folder-chevron">
+                        {isExpanded() ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                      </span>
+                      <span class="codex-folder-icon">
+                        <FolderOpen size={12} />
+                      </span>
+                      <span class="codex-folder-name">{workspace.displayName}</span>
+                      <span class="codex-folder-count">{sessions.length}</span>
+                    </button>
+
+                    {/* Sessions list (indented) */}
+                    <Show when={isExpanded()}>
+                      <div class="codex-folder-sessions">
+                        <For each={visibleSessions()}>
+                          {(session) => (
+                            <SessionRow
+                              session={session}
+                              active={props.activePath === session.path || session.active}
+                              isPinned={props.pinnedSessions.has(session.path)}
+                              onOpen={() => props.onOpenSession(session)}
+                              onPin={() => props.onPinSession(session.path)}
+                              onArchive={() => props.onArchiveSession(session.path)}
+                            />
+                          )}
+                        </For>
+                        <Show when={hasMore()}>
+                          <button
+                            type="button"
+                            class="codex-load-more"
+                            onClick={() => loadMore(workspace.path, sessions.length)}
+                          >
+                            Load {Math.min(PAGE_SIZE_MORE, remaining())} more
+                            <span class="codex-load-more-rem">{remaining()} remaining</span>
+                          </button>
+                        </Show>
+                      </div>
+                    </Show>
+                  </div>
+                </Show>
+              )
+            }}
+          </For>
+
+          {/* Show empty state only when no workspaces have sessions */}
+          <Show
+            when={
+              allWorkspaces().every((w) => (workspaceSessions().get(w.path) ?? []).length === 0) &&
+              !props.showArchived
+            }
+          >
+            <div class="codex-empty">
+              No threads yet. Start a prompt to create your first Pi thread.
             </div>
-            <Show
-              when={props.archivedSessions.length === 0}
-              fallback={
+          </Show>
+        </Show>
+
+        {/* Archived section */}
+        <Show when={props.showArchived}>
+          <div class="codex-workspace-folder codex-archived-folder">
+            <button type="button" class="codex-folder-header" onClick={props.onToggleArchived}>
+              <span class="codex-folder-chevron">
+                <ChevronDown size={12} />
+              </span>
+              <span class="codex-folder-icon">
+                <Archive size={12} />
+              </span>
+              <span class="codex-folder-name">Archived</span>
+              <span class="codex-folder-count">{props.archivedSessions.length}</span>
+            </button>
+            <div class="codex-folder-sessions">
+              <Show
+                when={props.archivedSessions.length > 0}
+                fallback={<div class="codex-archived-empty">No archived sessions</div>}
+              >
                 <For each={props.archivedSessions}>
                   {(item) => (
-                    <div class="archived-row">
-                      <div class="archived-row-info">
-                        <span class="archived-row-workspace">{item.workspaceName}</span>
-                        <span class="archived-row-date">
-                          {formatRelativeTime(new Date(item.archivedAt).toISOString())}
-                        </span>
+                    <div class="codex-archived-row">
+                      <span class="codex-archived-name">{item.workspaceName}</span>
+                      <span class="codex-archived-time">
+                        {formatRelativeTime(new Date(item.archivedAt).toISOString())}
+                      </span>
+                      <div class="codex-archived-actions">
+                        <button
+                          type="button"
+                          title="Restore session"
+                          onClick={() => props.onUnarchiveSession(item.archivedPath)}
+                        >
+                          <RotateCcw size={10} />
+                        </button>
+                        <button
+                          type="button"
+                          title="Permanently delete"
+                          onClick={() => props.onDeleteArchivedSession(item.archivedPath)}
+                        >
+                          <Trash2 size={10} />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        class="archived-restore-btn"
-                        title="Restore session"
-                        onClick={() => props.onUnarchiveSession(item.archivedPath)}
-                      >
-                        <RotateCcw size={11} />
-                      </button>
-                      <button
-                        type="button"
-                        class="archived-delete-btn"
-                        title="Permanently delete session"
-                        onClick={() => props.onDeleteArchivedSession(item.archivedPath)}
-                      >
-                        <Trash2 size={11} />
-                      </button>
                     </div>
                   )}
                 </For>
-              }
-            >
-              <div class="archived-empty">No archived sessions</div>
-            </Show>
-          </section>
-        </Show>
-
-        <Show when={pinnedItems().length > 0}>
-          <section class="session-group pinned-section">
-            <div class="session-group-header">
-              <span class="sg-label">Pinned</span>
+              </Show>
             </div>
-            <For each={pinnedItems()}>
-              {(session) => (
-                <SessionRow
-                  session={session}
-                  active={props.activePath === session.path || session.active}
-                  isPinned={true}
-                  onOpen={() => props.onOpenSession(session)}
-                  onPin={() => props.onPinSession(session.path)}
-                  onArchive={() => props.onArchiveSession(session.path)}
-                />
-              )}
-            </For>
-          </section>
-        </Show>
-
-        <Show when={grouped().length === 0 && pinnedItems().length === 0 && !props.showArchived}>
-          <div class="sidebar-empty">
-            No threads indexed yet. Start a prompt to create the first Pi thread.
           </div>
         </Show>
-
-        <For each={grouped()}>
-          {(group) => {
-            const isWorkspaceGroup = group.key.startsWith('/')
-            const sessionPaths = group.sessions.map((session) => session.path)
-
-            // Per-group visible count — pagination disabled when searching
-            const visibleCount = () =>
-              props.query.trim() ? group.sessions.length : getVisible(group.key)
-
-            const visibleSessions = () => group.sessions.slice(0, visibleCount())
-            const hasMore = () => !props.query.trim() && group.sessions.length > visibleCount()
-            const remaining = () => group.sessions.length - visibleCount()
-
-            return (
-              <section class="session-group">
-                {/* Group label — non-collapsible; shown for time-based groups, archive actions for workspace groups */}
-                <div class="session-group-header session-group-header--flat">
-                  <span class="sg-label">{group.label}</span>
-                  <Show when={isWorkspaceGroup}>
-                    <div class="sg-actions">
-                      <button
-                        type="button"
-                        class="sg-action-btn"
-                        title="Archive all"
-                        onClick={() => props.onArchiveGroup(group.label, sessionPaths)}
-                      >
-                        <Check size={12} />
-                      </button>
-                      <button
-                        type="button"
-                        class="sg-action-btn"
-                        title="New session in this workspace"
-                        onClick={() => props.onNewSessionIn(group.key)}
-                      >
-                        <Plus size={12} />
-                      </button>
-                    </div>
-                  </Show>
-                  <span class="sg-count">{group.sessions.length}</span>
-                </div>
-                <For each={visibleSessions()}>
-                  {(session) => (
-                    <SessionRow
-                      session={session}
-                      active={props.activePath === session.path || session.active}
-                      isPinned={props.pinnedSessions.has(session.path)}
-                      onOpen={() => props.onOpenSession(session)}
-                      onPin={() => props.onPinSession(session.path)}
-                      onArchive={() => props.onArchiveSession(session.path)}
-                    />
-                  )}
-                </For>
-                <Show when={hasMore()}>
-                  <button
-                    type="button"
-                    class="sg-load-more-btn"
-                    onClick={() => loadMore(group.key, group.sessions.length)}
-                  >
-                    Load {Math.min(PAGE_SIZE_MORE, remaining())} more
-                    <span class="sg-load-more-rem">{remaining()} remaining</span>
-                  </button>
-                </Show>
-              </section>
-            )
-          }}
-        </For>
       </div>
     </aside>
   )

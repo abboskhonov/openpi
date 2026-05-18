@@ -1,8 +1,7 @@
 import { Check, Pin } from 'lucide-solid'
 import { Show } from 'solid-js'
 import type { SessionListItem } from '../../lib/ipc'
-import { formatCurrency, formatRelativeTime, formatTokens } from '../../lib/sessionView'
-import { Badge } from '../common/Badge'
+import { formatRelativeTime } from '../../lib/sessionView'
 
 type SessionRowProps = {
   session: SessionListItem
@@ -15,52 +14,55 @@ type SessionRowProps = {
 
 export function SessionRow(props: SessionRowProps) {
   return (
-    <div class="session-row-wrap">
+    <div class="codex-session-wrap">
       <button
         type="button"
-        class={`session-row ${props.active ? 'is-active' : ''} ${props.isPinned ? 'is-pinned' : ''}`}
+        class={`codex-session ${props.active ? 'is-active' : ''} ${props.isPinned ? 'is-pinned' : ''}`}
         onClick={props.onOpen}
       >
-        <div class="session-row-title">
-          <span class="session-title-text">{props.session.title}</span>
-        </div>
-        <div class="session-meta-line">
-          <span>{formatRelativeTime(props.session.updatedAt)}</span>
-          <Show when={props.session.inputTokens + props.session.outputTokens > 0}>
-            <span>·</span>
-            <Badge>{formatTokens(props.session.inputTokens + props.session.outputTokens)}</Badge>
-          </Show>
-          <Show when={props.session.cost > 0}>
-            <span>·</span>
-            <Badge>{formatCurrency(props.session.cost)}</Badge>
-          </Show>
-        </div>
+        <span
+          class="codex-session-indicator"
+          classList={{ 'is-active': props.active, 'is-pinned': props.isPinned }}
+        />
+        <span class="codex-session-title">{props.session.title}</span>
+        <Show when={props.session.inputTokens + props.session.outputTokens > 0}>
+          <span class="codex-session-tokens">
+            {formatTokens(props.session.inputTokens + props.session.outputTokens)}
+          </span>
+        </Show>
+        <span class="codex-session-time">{formatRelativeTime(props.session.updatedAt)}</span>
       </button>
 
-      <div class="session-row-actions">
+      <div class="codex-session-actions">
         <button
           type="button"
-          class="session-row-action-btn"
+          class="codex-session-action-btn"
           title="Archive session"
           onClick={(event) => {
             event.stopPropagation()
             props.onArchive()
           }}
         >
-          <Check size={11} />
+          <Check size={10} />
         </button>
         <button
           type="button"
-          class={`session-row-action-btn ${props.isPinned ? 'is-pinned-active' : ''}`}
+          class={`codex-session-action-btn ${props.isPinned ? 'is-pinned-active' : ''}`}
           title={props.isPinned ? 'Unpin session' : 'Pin session'}
           onClick={(event) => {
             event.stopPropagation()
             props.onPin()
           }}
         >
-          <Pin size={11} />
+          <Pin size={10} />
         </button>
       </div>
     </div>
   )
+}
+
+function formatTokens(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}k`
+  return `${value}`
 }
