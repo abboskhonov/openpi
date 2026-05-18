@@ -6,6 +6,7 @@ import {
   ChevronRight,
   FolderOpen,
   PencilLine,
+  Plus,
   RotateCcw,
   Search,
   Trash2,
@@ -52,6 +53,7 @@ type SessionSidebarProps = {
   onOpenSession: (session: SessionListItem) => void
   onOpenSkills?: () => void
   onOpenExtensions?: () => void
+  onOpenWorkspace?: () => void
 }
 
 export function SessionSidebar(props: SessionSidebarProps) {
@@ -183,6 +185,15 @@ export function SessionSidebar(props: SessionSidebarProps) {
         >
           <Wrench size={15} />
           <span>Extensions</span>
+        </button>
+        <button
+          type="button"
+          class="codex-action-row no-drag"
+          onClick={() => props.onOpenWorkspace?.()}
+          title="Add workspace"
+        >
+          <Plus size={15} />
+          <span>Add workspace</span>
         </button>
       </div>
 

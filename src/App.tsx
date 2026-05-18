@@ -793,6 +793,7 @@ export default function App() {
                     onOpenSession={session.openExistingSession}
                     onOpenSkills={() => openCustomizationsTo('skills')}
                     onOpenExtensions={() => openCustomizationsTo('extensions')}
+                    onOpenWorkspace={session.openWorkspace}
                   />
                 </Show>
                 <ResizeHandle direction="horizontal" onResize={resizeSidebar} />
