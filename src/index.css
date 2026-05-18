@@ -1,4 +1,4 @@
-@tailwind base;
+    @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -13596,48 +13596,28 @@ body.panel-dragging {
   opacity: 1;
 }
 
-/* ── Codex sidebar design system (SessionSidebar + SessionRow) ───────────── */
+/* ── Codex sidebar design system — Tailwind @apply layer ───────────────── */
 
 .codex-sidebar {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  @apply flex flex-col h-full min-w-0;
   background: var(--surface-soft, #1b1a19);
   border-right: 1px solid var(--hairline, #2a2927);
-  min-width: 0;
 }
 
 .codex-sidebar-top {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 8px 6px;
-  flex-shrink: 0;
+  @apply flex flex-col gap-1.5 shrink-0 px-2 pt-2.5 pb-1.5;
 }
 
 .codex-action-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--primary, #f4f1ec);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.1s ease;
+  @apply flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium text-primary bg-transparent border-none cursor-pointer text-left transition-colors duration-100;
 }
 
 .codex-action-row:hover {
-  background: var(--surface-raised, #2e2c2a);
+  @apply bg-surface-raised;
 }
 
 .codex-action-row.is-primary {
-  background: var(--primary, #f4f1ec);
-  color: var(--on-primary, #141414);
+  @apply bg-primary text-on-primary;
 }
 
 .codex-action-row.is-primary:hover {
@@ -13645,260 +13625,131 @@ body.panel-dragging {
 }
 
 .codex-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px 4px;
-  flex-shrink: 0;
+  @apply flex items-center justify-between shrink-0 px-2.5 pt-3 pb-1;
 }
 
 .codex-section-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted, #8a8680);
+  @apply text-[11px] font-semibold uppercase tracking-wider text-muted;
 }
 
 .codex-section-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+  @apply flex items-center gap-0.5;
 }
 
 .codex-section-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: var(--muted, #8a8680);
-  cursor: pointer;
-  padding: 0;
+  @apply inline-flex items-center justify-center w-[22px] h-[22px] rounded bg-transparent border-none text-muted cursor-pointer p-0;
 }
 
 .codex-section-action-btn:hover {
-  background: var(--surface-raised, #2e2c2a);
-  color: var(--primary, #f4f1ec);
+  @apply bg-surface-raised text-primary;
 }
 
 .codex-search-field {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 8px 6px;
-  padding: 5px 8px;
-  border-radius: 6px;
-  background: var(--surface-inset, #0d0d0d);
-  border: 1px solid var(--hairline-soft, #20201f);
-  flex-shrink: 0;
+  @apply flex items-center gap-1.5 mx-2 mb-1.5 px-2 py-1 rounded-md bg-surface-inset border border-hairline-soft shrink-0;
 }
 
 .codex-search-field input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--primary, #f4f1ec);
-  font-size: 12px;
-  min-width: 0;
+  @apply flex-1 bg-transparent border-none outline-none text-primary text-xs min-w-0;
 }
 
 .codex-search-field input::placeholder {
-  color: var(--muted, #8a8680);
+  @apply text-muted;
 }
 
 .codex-sidebar-scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 6px 8px;
-  min-height: 0;
+  @apply flex-1 overflow-y-auto overflow-x-hidden px-1.5 pb-2 min-h-0;
 }
 
 .codex-workspace-folder {
-  margin-bottom: 2px;
+  @apply mb-0.5;
 }
 
 .codex-folder-header {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  width: 100%;
-  padding: 2px;
-  border-radius: 5px;
-  background: transparent;
-  border: none;
-  color: var(--muted, #8a8680);
-  font-size: 12px;
-  font-weight: 500;
+  @apply flex items-center gap-0.5 w-full p-0.5 rounded-md bg-transparent border-none text-muted text-xs font-medium;
 }
 
 .codex-folder-header:hover {
-  background: var(--surface-raised, #2e2c2a);
-  color: var(--primary, #f4f1ec);
+  @apply bg-surface-raised text-primary;
 }
 
 .codex-folder-header-main {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  padding: 3px 4px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
+  @apply flex items-center gap-1.5 flex-1 min-w-0 px-1 py-0.5 rounded bg-transparent border-none cursor-pointer text-left;
   color: inherit;
   font-size: inherit;
   font-weight: inherit;
-  cursor: pointer;
-  text-align: left;
 }
 
 .codex-folder-menu-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
+  @apply relative flex items-center;
 }
 
 .codex-folder-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 0;
-  opacity: 0;
-  transition: opacity 0.1s ease;
+  @apply inline-flex items-center justify-center w-5 h-5 rounded bg-transparent border-none text-inherit cursor-pointer p-0 opacity-0 transition-opacity duration-100;
 }
 
 .codex-folder-header:hover .codex-folder-menu-trigger {
-  opacity: 1;
+  @apply opacity-100;
 }
 
 .codex-folder-menu-trigger:hover {
-  background: var(--surface-card, #242321);
-  color: var(--primary, #f4f1ec);
+  @apply bg-surface-card text-primary;
 }
 
 .codex-folder-menu {
-  position: absolute;
-  top: calc(100% + 2px);
-  right: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  min-width: 160px;
-  padding: 4px;
-  border-radius: 6px;
-  background: var(--surface-card, #242321);
-  border: 1px solid var(--hairline, #2a2927);
+  @apply absolute top-[calc(100%+2px)] right-0 z-10 flex flex-col min-w-[160px] p-1 rounded-md bg-surface-card border border-hairline;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .codex-folder-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: var(--primary, #f4f1ec);
-  font-size: 12px;
-  cursor: pointer;
-  text-align: left;
-  white-space: nowrap;
+  @apply flex items-center gap-2 px-2 py-1 rounded bg-transparent border-none text-primary text-xs cursor-pointer text-left whitespace-nowrap;
 }
 
 .codex-folder-menu-item:hover {
-  background: var(--surface-raised, #2e2c2a);
+  @apply bg-surface-raised;
 }
 
 .codex-folder-chevron {
-  display: inline-flex;
-  flex-shrink: 0;
-  opacity: 0.7;
+  @apply inline-flex shrink-0 opacity-70;
 }
 
 .codex-folder-icon {
-  display: inline-flex;
-  flex-shrink: 0;
-  opacity: 0.7;
+  @apply inline-flex shrink-0 opacity-70;
 }
 
 .codex-folder-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
 }
 
 .codex-folder-count {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 1px 5px;
-  border-radius: 999px;
-  background: var(--surface-raised, #2e2c2a);
-  color: var(--muted, #8a8680);
-  flex-shrink: 0;
+  @apply text-[10px] font-semibold px-1.5 py-px rounded-full bg-surface-raised text-muted shrink-0;
 }
 
 .codex-folder-sessions {
-  padding-left: 18px;
+  @apply pl-4;
 }
 
 .codex-session-wrap {
-  position: relative;
-  display: flex;
-  align-items: stretch;
+  @apply relative flex items-stretch;
 }
 
 .codex-session {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 5px 6px;
-  border-radius: 5px;
-  background: transparent;
-  border: none;
-  color: var(--primary, #f4f1ec);
-  font-size: 12px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.1s ease;
+  @apply flex-1 flex items-center gap-1.5 min-w-0 px-1.5 py-1 rounded-md bg-transparent border-none text-primary text-xs cursor-pointer text-left transition-colors duration-100;
 }
 
 .codex-session:hover {
-  background: var(--surface-raised, #2e2c2a);
+  @apply bg-surface-raised;
 }
 
 .codex-session.is-active {
-  background: var(--surface-card, #242321);
+  @apply bg-surface-card;
 }
 
 .codex-session.is-pinned {
-  font-weight: 600;
+  @apply font-semibold;
 }
 
 .codex-session-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: transparent;
-  flex-shrink: 0;
+  @apply w-1.5 h-1.5 rounded-full bg-transparent shrink-0;
 }
 
 .codex-session-indicator.is-active {
@@ -13910,149 +13761,81 @@ body.panel-dragging {
 }
 
 .codex-session-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
 }
 
 .codex-session-tokens {
-  font-size: 10px;
-  color: var(--muted, #8a8680);
-  flex-shrink: 0;
+  @apply text-[10px] text-muted shrink-0;
 }
 
 .codex-session-time {
-  font-size: 10px;
-  color: var(--muted, #8a8680);
-  flex-shrink: 0;
+  @apply text-[10px] text-muted shrink-0;
 }
 
 .codex-session-actions {
-  display: none;
-  align-items: center;
-  gap: 1px;
-  padding-right: 4px;
+  @apply hidden items-center gap-px pr-1;
 }
 
 .codex-session-wrap:hover .codex-session-actions {
-  display: flex;
+  @apply flex;
 }
 
 .codex-session-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: var(--muted, #8a8680);
-  cursor: pointer;
-  padding: 0;
+  @apply inline-flex items-center justify-center w-5 h-5 rounded bg-transparent border-none text-muted cursor-pointer p-0;
 }
 
 .codex-session-action-btn:hover {
-  background: var(--surface-raised, #2e2c2a);
-  color: var(--primary, #f4f1ec);
+  @apply bg-surface-raised text-primary;
 }
 
 .codex-session-action-btn.is-pinned-active {
-  color: var(--accent-warm, #d4a96a);
+  background: var(--accent-warm, #d4a96a);
 }
 
 .codex-load-more {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 5px 6px;
-  border-radius: 5px;
-  background: transparent;
-  border: none;
-  color: var(--muted, #8a8680);
-  font-size: 11px;
-  cursor: pointer;
-  text-align: left;
+  @apply flex items-center gap-1.5 w-full px-1.5 py-1 rounded-md bg-transparent border-none text-muted text-[11px] cursor-pointer text-left;
 }
 
 .codex-load-more:hover {
-  color: var(--primary, #f4f1ec);
-  background: var(--surface-raised, #2e2c2a);
+  @apply text-primary bg-surface-raised;
 }
 
 .codex-load-more-rem {
-  font-size: 10px;
-  opacity: 0.7;
+  @apply text-[10px] opacity-70;
 }
 
 .codex-empty {
-  padding: 16px 10px;
-  font-size: 12px;
-  color: var(--muted, #8a8680);
-  text-align: center;
+  @apply px-2.5 py-4 text-xs text-muted text-center;
 }
 
 .codex-archived-folder {
-  margin-top: 8px;
-  border-top: 1px solid var(--hairline-soft, #20201f);
-  padding-top: 4px;
+  @apply mt-2 border-t border-hairline-soft pt-1;
 }
 
 .codex-archived-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 6px;
-  border-radius: 5px;
-  font-size: 12px;
+  @apply flex items-center gap-2 px-1.5 py-1 rounded-md text-xs;
 }
 
 .codex-archived-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--primary, #f4f1ec);
+  @apply flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-primary;
 }
 
 .codex-archived-time {
-  font-size: 10px;
-  color: var(--muted, #8a8680);
-  flex-shrink: 0;
+  @apply text-[10px] text-muted shrink-0;
 }
 
 .codex-archived-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
+  @apply flex items-center gap-0.5 shrink-0;
 }
 
 .codex-archived-actions button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: var(--muted, #8a8680);
-  cursor: pointer;
-  padding: 0;
+  @apply inline-flex items-center justify-center w-5 h-5 rounded bg-transparent border-none text-muted cursor-pointer p-0;
 }
 
 .codex-archived-actions button:hover {
-  background: var(--surface-raised, #2e2c2a);
-  color: var(--primary, #f4f1ec);
+  @apply bg-surface-raised text-primary;
 }
 
 .codex-archived-empty {
-  padding: 10px 6px;
-  font-size: 12px;
-  color: var(--muted, #8a8680);
+  @apply px-1.5 py-2.5 text-xs text-muted;
 }
