@@ -6,6 +6,15 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { app, BrowserWindow, dialog, ipcMain, Notification, net, protocol, shell } from 'electron'
+
+// Disable GPU acceleration on Linux to prevent blank/black window issues
+// caused by Chromium/Electron GPU sandbox incompatibility with certain drivers.
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch('disable-gpu-sandbox')
+  app.commandLine.appendSwitch('disable-software-rasterizer')
+}
+
 import { z } from 'zod'
 import type {
   AppInfo,
