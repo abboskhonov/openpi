@@ -68,6 +68,7 @@ const api = {
 
   // ── Workspace ────────────────────────────────────────────────────────────
   pickWorkspace: (): Promise<PickWorkspaceResult> => ipcRenderer.invoke(IPC.PICK_WORKSPACE),
+  addWorkspace: (): Promise<PickWorkspaceResult> => ipcRenderer.invoke(IPC.ADD_WORKSPACE),
 
   // ── Session commands ─────────────────────────────────────────────────────
   prompt: (text: string, contextPrefix?: string): Promise<void> =>

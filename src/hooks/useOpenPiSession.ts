@@ -374,6 +374,14 @@ export function useOpenPiSession() {
     await loadSessionIndex()
   }
 
+  const addWorkspace = async () => {
+    setError(null)
+    const result = await window.openpi.addWorkspace()
+    if (!result.cancelled) {
+      await loadSessionIndex()
+    }
+  }
+
   const openExistingSession = async (session: SessionListItem) => {
     setError(null)
     await window.openpi.openSession({ path: session.path })
@@ -718,6 +726,7 @@ export function useOpenPiSession() {
 
     // Actions
     openWorkspace,
+    addWorkspace,
     openExistingSession,
     createNewSession,
     selectWorkspace,

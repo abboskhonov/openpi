@@ -11,6 +11,7 @@ export const IPC = {
   // renderer → main (invoke)
   GET_APP_INFO: 'openpi:get-app-info',
   PICK_WORKSPACE: 'openpi:pick-workspace',
+  ADD_WORKSPACE: 'openpi:add-workspace',
   SESSION_PROMPT: 'openpi:session-prompt',
   SESSION_STEER: 'openpi:session-steer',
   SESSION_FOLLOW_UP: 'openpi:session-follow-up',

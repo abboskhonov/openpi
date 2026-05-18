@@ -983,6 +983,29 @@ function registerHandlers(): void {
     return { cancelled: false, path: workspacePath }
   })
 
+  ipcMain.handle(IPC.ADD_WORKSPACE, async () => {
+    if (!mainWindow) return { cancelled: true }
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: 'Add Workspace',
+      properties: ['openDirectory'],
+      buttonLabel: 'Add Workspace',
+    })
+    if (result.canceled || !result.filePaths[0]) {
+      return { cancelled: true }
+    }
+    const workspacePath = result.filePaths[0]
+    try {
+      sessionIndex?.upsertWorkspace(workspacePath)
+      // Refresh sessions for the newly added workspace so it appears in the sidebar
+      await sessionIndex?.refreshSessions(null, workspacePath)
+      mainWindow?.webContents.send(IPC.SESSION_INDEX_UPDATED)
+    } catch (err) {
+      emitSessionError(err instanceof Error ? err.message : String(err))
+      return { cancelled: true }
+    }
+    return { cancelled: false, path: workspacePath }
+  })
+
   ipcMain.handle(IPC.SESSION_PROMPT, async (_event, raw: unknown) => {
     const active = await ensureActiveSession()
     if (!active) return
