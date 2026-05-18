@@ -287,53 +287,51 @@ export function SessionSidebar(props: SessionSidebarProps) {
               const remaining = () => sessions.length - visibleCount()
 
               return (
-                <Show when={hasSessions}>
-                  <div class="codex-workspace-folder">
-                    {/* Folder header */}
-                    <button
-                      type="button"
-                      class="codex-folder-header"
-                      onClick={() => toggleWorkspace(workspace.path)}
-                    >
-                      <span class="codex-folder-chevron">
-                        {isExpanded() ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                      </span>
-                      <span class="codex-folder-icon">
-                        <FolderOpen size={12} />
-                      </span>
-                      <span class="codex-folder-name">{workspace.displayName}</span>
-                      <span class="codex-folder-count">{sessions.length}</span>
-                    </button>
+                <div class="codex-workspace-folder">
+                  {/* Folder header */}
+                  <button
+                    type="button"
+                    class="codex-folder-header"
+                    onClick={() => toggleWorkspace(workspace.path)}
+                  >
+                    <span class="codex-folder-chevron">
+                      {isExpanded() ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                    </span>
+                    <span class="codex-folder-icon">
+                      <FolderOpen size={12} />
+                    </span>
+                    <span class="codex-folder-name">{workspace.displayName}</span>
+                    <span class="codex-folder-count">{sessions.length}</span>
+                  </button>
 
-                    {/* Sessions list (indented) */}
-                    <Show when={isExpanded()}>
-                      <div class="codex-folder-sessions">
-                        <For each={visibleSessions()}>
-                          {(session) => (
-                            <SessionRow
-                              session={session}
-                              active={props.activePath === session.path || session.active}
-                              isPinned={props.pinnedSessions.has(session.path)}
-                              onOpen={() => props.onOpenSession(session)}
-                              onPin={() => props.onPinSession(session.path)}
-                              onArchive={() => props.onArchiveSession(session.path)}
-                            />
-                          )}
-                        </For>
-                        <Show when={hasMore()}>
-                          <button
-                            type="button"
-                            class="codex-load-more"
-                            onClick={() => loadMore(workspace.path, sessions.length)}
-                          >
-                            Load {Math.min(PAGE_SIZE_MORE, remaining())} more
-                            <span class="codex-load-more-rem">{remaining()} remaining</span>
-                          </button>
-                        </Show>
-                      </div>
-                    </Show>
-                  </div>
-                </Show>
+                  {/* Sessions list (indented) */}
+                  <Show when={isExpanded() && hasSessions}>
+                    <div class="codex-folder-sessions">
+                      <For each={visibleSessions()}>
+                        {(session) => (
+                          <SessionRow
+                            session={session}
+                            active={props.activePath === session.path || session.active}
+                            isPinned={props.pinnedSessions.has(session.path)}
+                            onOpen={() => props.onOpenSession(session)}
+                            onPin={() => props.onPinSession(session.path)}
+                            onArchive={() => props.onArchiveSession(session.path)}
+                          />
+                        )}
+                      </For>
+                      <Show when={hasMore()}>
+                        <button
+                          type="button"
+                          class="codex-load-more"
+                          onClick={() => loadMore(workspace.path, sessions.length)}
+                        >
+                          Load {Math.min(PAGE_SIZE_MORE, remaining())} more
+                          <span class="codex-load-more-rem">{remaining()} remaining</span>
+                        </button>
+                      </Show>
+                    </div>
+                  </Show>
+                </div>
               )
             }}
           </For>
